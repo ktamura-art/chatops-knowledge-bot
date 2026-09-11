@@ -167,6 +167,39 @@ footer{margin-top:70px;padding-top:20px;border-top:2px solid var(--ink);
   </ol>
 </div>
 
+<!-- ===== 00 作らない選択肢 ===== -->
+<section>
+  <span class="snum">00</span>
+  <h2>その前に ── 作らずに済むか</h2>
+  <p class="lede">本書は自社で組む場合の設計です。ただし、<b>設定だけで済む道が2つあります。</b>先にそちらで足りないかを確かめてください。</p>
+
+  <div class="scroll">
+    <table>
+      <thead><tr><th>要件</th><th>ナレッジ共有機能</th><th>チャット連携機能</th><th>自社で組む（本書）</th></tr></thead>
+      <tbody>
+        <tr><td class="k">コードが要らない</td><td class="hi"><b>要らない</b></td><td class="hi"><b>要らない</b></td><td class="no">要る</td></tr>
+        <tr><td class="k">チャットから指示</td><td class="no">できない<br><span style="font-size:12px;opacity:.75">専用画面から使う</span></td><td class="hi"><b>できる</b></td><td class="hi"><b>できる</b></td></tr>
+        <tr><td class="k">チャットツールを選べる</td><td>—</td><td class="no">限られる</td><td class="hi"><b>選べる</b></td></tr>
+        <tr><td class="k">共通ノウハウ</td><td class="hi"><b>できる</b></td><td class="hi"><b>できる</b></td><td class="hi"><b>できる</b></td></tr>
+        <tr><td class="k">利用者ごとの出し分け</td><td class="hi"><b>できる</b><br><span style="font-size:12px;opacity:.75">単位を分けて招待する</span></td><td class="no">できない<br><span style="font-size:12px;opacity:.75">チャンネル単位まで</span></td><td class="hi"><b>できる</b></td></tr>
+        <tr><td class="k">結果が他人に見えない</td><td class="hi"><b>既定で非公開</b></td><td class="no">同じ場の全員が読める</td><td class="hi"><b>返す先を変えられる</b></td></tr>
+        <tr><td class="k">会話の続き</td><td class="hi"><b>できる</b></td><td class="hi"><b>できる</b></td><td class="no">1往復で完結</td></tr>
+        <tr><td class="k">必要な契約</td><td><b>上位プラン</b></td><td><b>上位プラン</b></td><td class="hi"><b>現状のまま</b></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="box ok">
+    <p class="box-t"><span class="p p-ok">判断</span>トレードオフは「プラン」か「開発」か</p>
+    <p style="margin-bottom:0">設定だけで済ませる道は、<b>どちらも上位プランが前提</b>です。現在の契約のまま進めたい場合にだけ、自社で組む意味があります。<b>先に設定で試し、足りなかった点だけを開発で埋める</b>のが安全な順序です。作ってから「設定で足りた」と分かるのが、いちばん避けたい結末です。</p>
+  </div>
+
+  <div class="box warn">
+    <p class="box-t"><span class="p p-warn">注意</span>ナレッジ共有機能の内容は、チャット連携側からは読まれません</p>
+    <p style="margin-bottom:0">同じ提供元の機能でも、<b>専用画面に貯めたナレッジと指示は、チャット連携側には届きません</b>。両方を使う場合、ノウハウを二重に持つことになります。どちらか一方に寄せてください。</p>
+  </div>
+</section>
+
 <!-- ===== 01 システム構成 ===== -->
 <section>
   <span class="snum">01</span>
