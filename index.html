@@ -552,8 +552,17 @@ DEFAULT_ROLE    権限表に無い人の扱い（一般 ／ 反応しない）</
         <tr><td class="k">API全体の頻度</td><td>5分あたり300回</td><td>同上</td></tr>
         <tr><td class="k">定期実行の間隔</td><td>最短1分</td><td>即時応答は望めない。受付の返事を先に出す</td></tr>
         <tr><td class="k">出し分けの粒度</td><td>役割単位。<b>案件単位の細かい制御は別途必要</b></td><td>案件ごとに分けるなら、ルーム自体を分ける</td></tr>
+        <tr><td class="k">会話の継続</td><td><b>1往復で完結する。前回の続きはできない</b></td><td>続きが要るなら、受付表にスレッドIDを持たせ、直前のやり取りを添えて渡す実装を足す</td></tr>
+        <tr><td class="k">利用者の識別</td><td>チャット側のIDでのみ識別する。<b>生成AI側は誰の依頼かを知らない</b></td><td>監査はチャット側のIDと実行ログで行う</td></tr>
       </tbody>
     </table>
+  </div>
+
+  <div class="box risk">
+    <p class="box-t"><span class="p p-risk">規約</span>アカウントの共有はできません</p>
+    <p>「1つの契約を全員で使う」を、<b>ログイン情報を回して実現してはいけません。</b>提供元の利用規約に明記があります。</p>
+    <p><code>You may not share your Account login information, Anthropic API key, or Account credentials with anyone else. You also may not make your Account available to anyone else.</code></p>
+    <p style="margin-bottom:0"><b>本構成はこれに当たりません。</b>鍵は誰にも配らず、サーバー側のスクリプトだけが保持します。利用者はチャットに書くだけで、鍵にも管理画面にも触れません。全員に共通なのは<b>ノウハウ表・権限表・設定</b>であって、アカウントではありません。</p>
   </div>
 
   <div class="box warn">
