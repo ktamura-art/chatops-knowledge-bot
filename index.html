@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>社内ノウハウBot 設計と手順</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=BIZ+UDPGothic:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --ink:#10181F; --ink2:#41505E; --ink3:#6B7A89;
+  --paper:#F2F5F6; --surface:#FFFFFF; --surface2:#E7ECEE;
+  --line:#D3DBDE; --line2:#BCC7CB;
+  --accent:#0F6E63; --accent-soft:#E1F0ED;
+  --warn:#8A6115; --warn-soft:#FAF1DE;
+  --risk:#9E3535; --risk-soft:#F9E8E8;
+  --me:#D9EEE9; --bot:#FFFFFF;
+  --f-head:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","メイリオ",Meiryo,sans-serif;
+  --f-sans:"BIZ UDPGothic","Hiragino Kaku Gothic ProN","メイリオ",Meiryo,system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ink:#E3EAED; --ink2:#A6B4BE; --ink3:#7D8C97;
+    --paper:#0D1418; --surface:#151F25; --surface2:#1D2A31;
+    --line:#2A3841; --line2:#3A4A54;
+    --accent:#4FBFAE; --accent-soft:#12302C;
+    --warn:#D4A857; --warn-soft:#2C2516;
+    --risk:#E08A8A; --risk-soft:#321C1C;
+    --me:#16332E; --bot:#1A252C;
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#E3EAED; --ink2:#A6B4BE; --ink3:#7D8C97;
+  --paper:#0D1418; --surface:#151F25; --surface2:#1D2A31;
+  --line:#2A3841; --line2:#3A4A54;
+  --accent:#4FBFAE; --accent-soft:#12302C;
+  --warn:#D4A857; --warn-soft:#2C2516;
+  --risk:#E08A8A; --risk-soft:#321C1C;
+  --me:#16332E; --bot:#1A252C;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-sans);
+  font-size:15px;line-height:1.85;margin:0;-webkit-font-smoothing:antialiased}
+.wrap{max-width:980px;margin:0 auto;padding:0 22px 92px}
+h1,h2,h3{font-family:var(--f-head);text-wrap:balance}
+a{color:var(--accent);text-underline-offset:2px}
+a:focus-visible,summary:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+p{margin:0 0 14px;max-width:70ch}
+ul,ol{max-width:70ch}
+
+/* header */
+header.top{padding:52px 0 26px;border-bottom:2px solid var(--ink)}
+.eyebrow{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--accent);margin:0 0 12px}
+h1{font-weight:700;font-size:clamp(28px,5vw,42px);line-height:1.3;margin:0 0 14px}
+.sub{color:var(--ink2);max-width:62ch;margin:0 0 20px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 24px;font-family:var(--f-mono);
+  font-size:11.5px;color:var(--ink3)}
+
+section{margin-top:60px}
+.snum{font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;color:var(--accent);
+  display:block;margin-bottom:6px}
+h2{font-size:clamp(20px,3vw,26px);font-weight:700;margin:0 0 4px;
+  padding-bottom:11px;border-bottom:1px solid var(--line2)}
+.lede{color:var(--ink2);margin:15px 0 24px;max-width:66ch}
+h3{font-size:16.5px;font-weight:700;margin:32px 0 11px;display:flex;
+  align-items:baseline;gap:9px}
+h3::before{content:"";width:6px;height:6px;background:var(--accent);flex:0 0 auto;
+  transform:translateY(-2px);border-radius:50%}
+
+/* chat demo */
+.demo{background:var(--surface);border:1px solid var(--line);margin:26px 0}
+.demo-bar{display:flex;align-items:center;gap:10px;padding:11px 16px;
+  border-bottom:1px solid var(--line);background:var(--surface2);
+  font-family:var(--f-mono);font-size:11.5px;color:var(--ink2)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:0 0 auto}
+.stream{padding:18px 16px;min-height:230px;display:flex;flex-direction:column;gap:12px}
+.msg{display:flex;gap:10px;align-items:flex-start;animation:rise .28s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.msg{animation:none}}
+.msg.right{flex-direction:row-reverse}
+.av{width:30px;height:30px;flex:0 0 auto;border-radius:50%;display:grid;
+  place-items:center;font-family:var(--f-mono);font-size:11px;font-weight:600;
+  background:var(--surface2);color:var(--ink2);border:1px solid var(--line)}
+.av.bot{background:var(--accent);color:#fff;border-color:var(--accent)}
+.bub{background:var(--bot);border:1px solid var(--line);padding:10px 13px;
+  max-width:min(78%,560px);font-size:13.5px;line-height:1.8;white-space:pre-wrap}
+.msg.right .bub{background:var(--me);border-color:var(--accent-soft)}
+.who{font-family:var(--f-mono);font-size:10.5px;color:var(--ink3);
+  margin:0 0 3px;letter-spacing:.03em}
+.steps-live{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{font-family:var(--f-mono);font-size:10.5px;padding:2px 8px;
+  border:1px solid var(--line2);color:var(--ink3);background:var(--surface2)}
+.chip.on{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.demo-ctl{display:flex;flex-wrap:wrap;gap:8px;padding:14px 16px;
+  border-top:1px solid var(--line);background:var(--surface2)}
+button.ask{font-family:var(--f-sans);font-size:13px;padding:7px 13px;cursor:pointer;
+  background:var(--surface);color:var(--ink);border:1px solid var(--line2)}
+button.ask:hover{border-color:var(--accent);color:var(--accent)}
+button.ask[disabled]{opacity:.45;cursor:default}
+button.ask.reset{margin-left:auto;color:var(--ink3)}
+
+/* tables */
+.scroll{overflow-x:auto;border:1px solid var(--line);background:var(--surface);margin:0 0 20px}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:13.5px}
+th,td{padding:10px 13px;text-align:left;border-bottom:1px solid var(--line);
+  vertical-align:top;line-height:1.65}
+thead th{background:var(--surface2);font-size:12px;font-weight:700;color:var(--ink2);white-space:nowrap}
+tbody tr:last-child td{border-bottom:none}
+td.k{font-weight:700;white-space:nowrap}
+.hi{background:var(--accent-soft)}
+
+/* pills + boxes */
+.p{display:inline-block;font-family:var(--f-mono);font-size:10.5px;padding:2px 7px;
+  border:1px solid currentColor;white-space:nowrap;line-height:1.6}
+.p-ok{color:var(--accent);background:var(--accent-soft)}
+.p-warn{color:var(--warn);background:var(--warn-soft)}
+.p-risk{color:var(--risk);background:var(--risk-soft)}
+.box{border:1px solid var(--line);background:var(--surface);padding:19px 21px;margin:22px 0}
+.box>:last-child{margin-bottom:0}
+.box-t{font-weight:700;font-size:14px;margin:0 0 9px;display:flex;gap:9px;align-items:baseline}
+.box.risk{border-left:3px solid var(--risk);background:var(--risk-soft)}
+.box.warn{border-left:3px solid var(--warn);background:var(--warn-soft)}
+.box.ok{border-left:3px solid var(--accent);background:var(--accent-soft)}
+
+/* figure */
+figure{margin:26px 0;background:var(--surface);border:1px solid var(--line);padding:20px 18px 14px}
+figure svg{display:block;width:100%;height:auto;color:var(--ink);font-family:var(--f-sans)}
+figcaption{font-size:12.5px;color:var(--ink3);margin-top:13px;line-height:1.75;
+  border-top:1px solid var(--line);padding-top:10px}
+
+/* steps */
+ol.setup{list-style:none;padding:0;margin:22px 0;counter-reset:s;max-width:none}
+ol.setup>li{counter-increment:s;border:1px solid var(--line);background:var(--surface);
+  margin:0 0 10px;padding:16px 18px 16px 58px;position:relative}
+ol.setup>li::before{content:counter(s,decimal-leading-zero);position:absolute;left:18px;top:15px;
+  font-family:var(--f-mono);font-size:12px;color:var(--accent);font-weight:600}
+ol.setup h3{margin:0 0 7px;font-size:15px}
+ol.setup h3::before{display:none}
+ol.setup p{font-size:14px;margin:0 0 8px}
+ol.setup>li>:last-child{margin-bottom:0}
+
+details{border:1px solid var(--line);background:var(--surface2);margin:10px 0 0}
+summary{cursor:pointer;padding:9px 13px;font-family:var(--f-mono);font-size:12px;color:var(--ink2)}
+summary:hover{color:var(--accent)}
+details[open] summary{border-bottom:1px solid var(--line)}
+pre{margin:0;padding:14px;overflow-x:auto;font-family:var(--f-mono);font-size:12px;
+  line-height:1.75;background:var(--surface);color:var(--ink)}
+code{font-family:var(--f-mono);font-size:.87em;background:var(--surface2);
+  padding:1px 5px;border:1px solid var(--line)}
+pre code{background:none;border:none;padding:0}
+
+footer{margin-top:70px;padding-top:20px;border-top:2px solid var(--ink);
+  font-size:12.5px;color:var(--ink3);display:flex;justify-content:space-between;
+  flex-wrap:wrap;gap:10px}
+@media (max-width:600px){
+  .wrap{padding:0 15px 70px}
+  .bub{max-width:84%}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <p class="eyebrow">設計デモ ／ ChatOps</p>
+  <h1>社内ノウハウBot</h1>
+  <p class="sub">チャットから指示を出すと、社内に蓄積したノウハウを踏まえて回答・資料を返す仕組み。設計の考え方と、構築の手順をまとめています。</p>
+  <div class="meta">
+    <span>Google Apps Script ＋ Claude API</span>
+    <span>2026年9月</span>
+    <span>株式会社デジライズ</span>
+  </div>
+</header>
+
+<!-- ===== 00 デモ ===== -->
+<section>
+  <span class="snum">00</span>
+  <h2>動いている様子</h2>
+  <p class="lede">下のボタンを押すと、実際のやり取りを再現します。裏で何が起きているかを、チップで同時に表示します。</p>
+
+  <div class="demo">
+    <div class="demo-bar"><span class="dot"></span><span id="roomName">#営業チーム</span><span style="margin-left:auto" id="clock">--:--</span></div>
+    <div class="stream" id="stream">
+      <div class="msg"><span class="av bot">B</span><div><p class="who">ノウハウBot</p><div class="bub">このルームで待機しています。<code>@bot</code> に続けて依頼を書いてください。</div></div></div>
+    </div>
+    <div class="demo-ctl" id="ctl">
+      <button class="ask" data-i="0">提案書の構成を頼む</button>
+      <button class="ask" data-i="1">議事録をまとめさせる</button>
+      <button class="ask" data-i="2">ルールに反する依頼をする</button>
+      <button class="ask reset" id="reset">最初から</button>
+    </div>
+  </div>
+
+  <div class="box">
+    <p class="box-t">再現しているもの</p>
+    <p style="margin-bottom:0">画面はデモです。実際の応答は数十秒かかります。ここでは<b>受付 → 待機 → ノウハウ照合 → 生成 → 投稿</b>の順序が分かるよう、短縮して再生しています。3つめのボタンは、<b>社内ルールと依頼が食い違ったときの挙動</b>を示しています。</p>
+  </div>
+</section>
+
+<!-- ===== 01 経路 ===== -->
+<section>
+  <span class="snum">01</span>
+  <h2>どのチャットから使うか</h2>
+  <p class="lede">使っているチャットツールで、必要な作業量が大きく変わります。ここを最初に確定させてください。</p>
+
+  <div class="scroll">
+    <table>
+      <thead><tr><th>　</th><th>Slack</th><th>Chatwork</th></tr></thead>
+      <tbody>
+        <tr><td class="k">公式のつなぎ込み</td><td class="hi"><b>あり</b></td><td><b>なし</b></td></tr>
+        <tr><td class="k">開発</td><td class="hi"><b>不要</b>（管理画面の設定のみ）</td><td>必要（本ページの構成）</td></tr>
+        <tr><td class="k">前提</td><td><b>上位プランが必要</b></td><td>プランを問わない</td></tr>
+        <tr><td class="k">実体</td><td>組織で1つの共有アイデンティティ</td><td>Botアカウント1つ</td></tr>
+        <tr><td class="k">ノウハウの置き場所</td><td>チャンネルごとの記憶＋指示</td><td>スプレッドシート</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="box ok">
+    <p class="box-t"><span class="p p-ok">判断</span>Slackが使えるなら、作らない</p>
+    <p style="margin-bottom:0">Slack 側には組織共有のBotを置く公式の仕組みがあり、<b>コードを書かずに設定だけで成立します</b>。上位プランが条件になるため、そこが満たせないときに本ページの構成を採ります。</p>
+  </div>
+</section>
+
+<!-- ===== 02 処理の流れ ===== -->
+<section>
+  <span class="snum">02</span>
+  <h2>処理の流れ</h2>
+  <p class="lede">素直に「受け取ってから生成する」と作ると、必ず失敗します。理由は次の制約です。</p>
+
+  <div class="box risk">
+    <p class="box-t"><span class="p p-risk">設計を決めた制約</span>Webhookは10秒で切られる</p>
+    <p style="margin-bottom:0">Chatwork の Webhook は<b>10秒以内に応答しないと接続が切断され、しかも再送されません</b>。資料生成は数十秒から数分かかります。受け取りと処理を分けないと、依頼が消えます。</p>
+  </div>
+
+  <figure>
+    <svg viewBox="0 0 860 300" role="img" aria-label="チャット投稿から成果物が返るまでの流れ">
+      <defs>
+        <marker id="a" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+          <path d="M0,0 L9,4.5 L0,9 Z" fill="currentColor"/>
+        </marker>
+      </defs>
+      <g fill="none" stroke="currentColor" stroke-width="1.4">
+        <rect x="12" y="30" width="132" height="66"/>
+        <rect x="196" y="30" width="150" height="66"/>
+        <rect x="398" y="30" width="132" height="66"/>
+        <rect x="398" y="150" width="132" height="66"/>
+        <rect x="582" y="150" width="132" height="66"/>
+        <rect x="766" y="150" width="82" height="66"/>
+      </g>
+      <g fill="currentColor" text-anchor="middle">
+        <text x="78" y="58" font-size="13" font-weight="700">チャット</text>
+        <text x="78" y="78" font-size="11" opacity=".7">@bot 依頼</text>
+
+        <text x="271" y="52" font-size="13" font-weight="700">受け口</text>
+        <text x="271" y="70" font-size="10.5" opacity=".7">積むだけ</text>
+        <text x="271" y="86" font-size="10.5" opacity=".7">即座に応答</text>
+
+        <text x="464" y="58" font-size="13" font-weight="700">受付表</text>
+        <text x="464" y="78" font-size="11" opacity=".7">順番待ち</text>
+
+        <text x="464" y="172" font-size="13" font-weight="700">1分ごと</text>
+        <text x="464" y="192" font-size="11" opacity=".7">取り出して処理</text>
+
+        <text x="648" y="172" font-size="13" font-weight="700">ノウハウ照合</text>
+        <text x="648" y="192" font-size="11" opacity=".7">＋ 生成</text>
+
+        <text x="807" y="172" font-size="13" font-weight="700">投稿</text>
+        <text x="807" y="192" font-size="11" opacity=".7">／ リンク</text>
+      </g>
+      <g stroke="currentColor" stroke-width="1.4" marker-end="url(#a)" fill="none">
+        <path d="M146,63 L190,63"/>
+        <path d="M348,63 L392,63"/>
+        <path d="M464,98 L464,144"/>
+        <path d="M532,183 L576,183"/>
+        <path d="M716,183 L760,183"/>
+      </g>
+      <g stroke="currentColor" stroke-width="1.2" stroke-dasharray="4 3" fill="none" marker-end="url(#a)">
+        <path d="M271,98 C271,130 180,130 100,160 L82,168"/>
+      </g>
+      <g fill="currentColor" font-size="10.5" opacity=".68">
+        <text x="118" y="152">10秒以内に「受け付けました」</text>
+        <text x="12" y="262" font-size="11.5" opacity=".9">受け取りと生成を分けることで、時間のかかる処理でも取りこぼしません。</text>
+        <text x="12" y="282" font-size="11.5" opacity=".9">同じ依頼が二度届いても、メッセージIDで重複を弾きます。</text>
+      </g>
+    </svg>
+    <figcaption>受け口は「積むだけ」に徹し、生成は別の実行に切り出す。時間のかかる処理をチャットに載せるときの定石です。</figcaption>
+  </figure>
+</section>
+
+<!-- ===== 03 ノウハウ ===== -->
+<section>
+  <span class="snum">03</span>
+  <h2>ノウハウの持たせ方</h2>
+  <p class="lede">ここが品質を決めます。原則は1つだけです。</p>
+
+  <div class="box ok">
+    <p class="box-t"><span class="p p-ok">原則</span>元の資料を毎回読ませない。規則に圧縮して渡す</p>
+    <p style="margin-bottom:0">過去の提案書を数十ページ分そのまま読ませると、<b>遅く・高く・精度も安定しません</b>。抽出すべきものは、実際にはA4数枚に収まる規則です。一度だけ人が抽出して固定し、以降はその規則だけを渡します。</p>
+  </div>
+
+  <h3>ノウハウ表の作り</h3>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>分類</th><th>見出し</th><th>内容</th><th>適用条件</th></tr></thead>
+      <tbody>
+        <tr><td>共通</td><td class="k">結論から書く</td><td>最初の3行で結論。理由と背景はその後に置く。</td><td><em>（空欄）</em></td></tr>
+        <tr><td>共通</td><td class="k">数値の扱い</td><td>推計値には必ず「推計」と付け、算出根拠を併記する。</td><td><em>（空欄）</em></td></tr>
+        <tr><td>提案書</td><td class="k">価格の見せ方</td><td>総額だけでなく、工程ごとの人日と単価を必ず併記する。</td><td>提案書 見積 価格</td></tr>
+        <tr><td>議事録</td><td class="k">決定と宿題を分ける</td><td>決まったことと、持ち帰りを別の見出しにする。担当と期限を必ず付ける。</td><td>議事録 打合せ MTG</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p><b>適用条件が空欄なら常に効きます。</b>語句を書くと、その語が依頼文に含まれるときだけ効きます。関係のない規則を毎回送らずに済みます。</p>
+
+  <h3>並べる順序に意味があります</h3>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>順</th><th>置くもの</th><th>変わるか</th><th>扱い</th></tr></thead>
+      <tbody>
+        <tr><td class="k">1</td><td>役割の定義</td><td>ほぼ不変</td><td class="hi"><b>キャッシュ対象</b></td></tr>
+        <tr><td class="k">2</td><td>共通ルール</td><td>ほぼ不変</td><td class="hi"><b>キャッシュ対象</b></td></tr>
+        <tr><td class="k">3</td><td>依頼に関係するルール</td><td>依頼ごとに変わる</td><td>対象外</td></tr>
+        <tr><td class="k">4</td><td>依頼文</td><td>毎回変わる</td><td>対象外</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p><b>変わらないものを先頭に置くのが要点です。</b>先頭から一致した部分だけがキャッシュに乗るため、順序を崩すと効かなくなります。</p>
+
+  <div class="box warn">
+    <p class="box-t"><span class="p p-warn">条件つき</span>キャッシュが得になる回数</p>
+    <p style="margin-bottom:0">キャッシュには<b>書き込み側にも課金があります</b>。短い保持なら2回目、長い保持なら3回目の呼び出しから得になります。<b>1日に数回しか動かない用途では、付けないほうが安く済みます。</b></p>
+  </div>
+</section>
+
+<!-- ===== 04 手順 ===== -->
+<section>
+  <span class="snum">04</span>
+  <h2>構築の手順</h2>
+  <p class="lede">上から順に進めてください。各段階に確認用の関数を用意してあるので、次へ進む前に必ず通してください。</p>
+
+  <ol class="setup">
+    <li>
+      <h3>入れ物を用意する</h3>
+      <p>スプレッドシートを1つ作ります。中のシートはコードが自動で作るので、空のままで構いません。生成物の保存先フォルダも作っておきます。</p>
+      <p>それぞれのIDを控えます。URLの <code>/d/</code> と <code>/edit</code> の間、フォルダは <code>/folders/</code> の後ろです。</p>
+    </li>
+
+    <li>
+      <h3>Apps Script プロジェクトを作る</h3>
+      <p><b>既存のプロジェクトに足さず、新しく作ってください。</b>他の自動化と関数名が衝突します。</p>
+      <details><summary>衝突する名前</summary>
+<pre><code>getSheet_ / columnIndex_ / LOG_HEADERS / testEndToEnd_</code></pre></details>
+    </li>
+
+    <li>
+      <h3>鍵を保存する</h3>
+      <p>コードの中にAPIキーを書いたままにしないため、スクリプトプロパティへ移します。</p>
+      <details><summary>setupSecrets_() の中身</summary>
+<pre><code>function setupSecrets_() {
+  const p = PropertiesService.getScriptProperties();
+  p.setProperty('ANTHROPIC_API_KEY', '');   // ← 生成AIのAPIキー
+  p.setProperty('CHATWORK_TOKEN', '');      // ← チャット側のAPIトークン
+  Logger.log('保存しました。コード内の値を消してから、もう一度保存してください。');
+}</code></pre></details>
+      <p style="margin-top:9px"><b>実行したら、コード内の値を消して保存し直してください。</b></p>
+    </li>
+
+    <li>
+      <h3>設定値を入れる</h3>
+      <p>書き換えるのは、環境によって変わる値だけです。</p>
+      <details><summary>置き換える箇所</summary>
+<pre><code>SHEET_ID:       'スプレッドシートのID'
+FOLDER_OUT:     '出力先フォルダのID'
+ALLOWED_ROOMS:  ['反応させるルームID']   // ここに無いルームは無視します
+TRIGGER_WORD:   '@bot'                  // 本文がこれで始まるときだけ動きます</code></pre></details>
+    </li>
+
+    <li>
+      <h3>チャットへの投稿を確認する</h3>
+      <p><code>testChatwork_()</code> を実行します。テスト用のルームに接続確認のメッセージが出れば成功です。</p>
+      <p>ここで失敗する場合、原因はトークンかルームIDのどちらかです。生成AI側はまだ関係ありません。</p>
+    </li>
+
+    <li>
+      <h3>ノウハウの組み立てを確認する</h3>
+      <p><code>testKnowledge_()</code> を実行します。見本の規則が3件入り、依頼文に応じてどれが選ばれたかがログに出ます。</p>
+      <p>ここで「依頼に関係するルール」が空なら、<b>適用条件の語句が依頼文と噛み合っていません</b>。</p>
+    </li>
+
+    <li>
+      <h3>ウェブアプリとして公開し、Webhookを登録する</h3>
+      <p>デプロイ → 新しいデプロイ → 種類「ウェブアプリ」。<b>アクセスできるユーザーは「全員」</b>にします。チャット側のサーバーから叩かれるためです。</p>
+      <p>発行されたURLを、チャット側の管理画面でWebhookとして登録します。</p>
+      <details><summary>URLの扱いに注意</summary>
+<pre><code>Apps Script の受け口ではリクエストヘッダを取得できないため、
+Webhookの署名検証ができません。
+
+代わりに2段で守ります。
+  1. ウェブアプリのURLを秘匿する（推測困難な文字列が実質の鍵）
+  2. 本文の room_id を ALLOWED_ROOMS と照合し、一致しなければ無視する
+
+署名検証が要件になる場合は、受け口を別基盤へ移してください。</code></pre></details>
+    </li>
+
+    <li>
+      <h3>定期実行を設置し、通しで確認する</h3>
+      <p><code>setupTrigger()</code> で1分ごとの実行を設置します。同名のものは自動で消してから作り直すので、二重にはなりません。</p>
+      <p>最後に <code>testEndToEnd_()</code> を実行します。受付表に1件積まれ、処理され、チャットへ投稿されるところまで通れば完成です。</p>
+    </li>
+  </ol>
+</section>
+
+<!-- ===== 05 制約 ===== -->
+<section>
+  <span class="snum">05</span>
+  <h2>先に知っておく制約</h2>
+
+  <div class="scroll">
+    <table>
+      <thead><tr><th>項目</th><th>制約</th><th>回避のしかた</th></tr></thead>
+      <tbody>
+        <tr><td class="k">Webhookの応答</td><td><b>10秒以内。超えると切断され、再送もされない</b></td><td>受け取りと処理を分ける（本構成）</td></tr>
+        <tr><td class="k">署名検証</td><td><b>Apps Script では不可</b>（ヘッダを取得できない）</td><td>URLの秘匿＋ルームIDの照合。要件が厳しければ別基盤へ</td></tr>
+        <tr><td class="k">ファイル添付</td><td><b>上限5MB</b></td><td>超えるものはドライブに保存してリンクを投稿</td></tr>
+        <tr><td class="k">投稿の頻度</td><td>ルームごとに10秒あたり10回</td><td>1回の処理件数を絞る（既定は3件）</td></tr>
+        <tr><td class="k">API全体の頻度</td><td>5分あたり300回</td><td>同上</td></tr>
+        <tr><td class="k">定期実行の間隔</td><td>最短1分</td><td>即時応答は望めない。受付の返事を先に出す</td></tr>
+        <tr><td class="k">実行時間</td><td>Apps Script の1回の実行に上限あり</td><td>1回の処理件数を絞り、長い生成は分割する</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="box warn">
+    <p class="box-t"><span class="p p-warn">運用</span>ノウハウは放っておくと腐ります</p>
+    <p style="margin-bottom:0">数週間前に書いた規則が、もう存在しない体裁や担当を指していることがあります。<b>定期的な棚卸しを運用に組み込んでください。</b>更新日の列を設けてあるのはそのためです。月に一度、古い順に見直すだけで精度が保てます。</p>
+  </div>
+</section>
+
+<footer>
+  <span>株式会社デジライズ</span>
+  <span>設計デモ ／ 2026年9月</span>
+</footer>
+
+</div>
+
+<script>
+(function () {
+  var stream = document.getElementById('stream');
+  var ctl = document.getElementById('ctl');
+  var clock = document.getElementById('clock');
+
+  function now() {
+    var d = new Date();
+    return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+  }
+  clock.textContent = now();
+
+  var SCRIPTS = [
+    {
+      ask: '@bot 来週の商談で使う提案書の構成を作って。相手は従業員120名の製造業、テーマは検査工程の自動化。',
+      chips: ['受付', 'ノウハウ照合', '共通2件＋提案書1件', '生成', '投稿'],
+      reply: '構成案です。\n\n1. 結論（検査工程の自動化で、年間約1,800時間の削減を見込む ※推計）\n2. 現状の課題 ─ 目視検査の属人化と、記録の手書き運用\n3. 打ち手 ─ 画像判定の導入と、検査記録の自動化\n4. 費用 ─ 要件定義 8人日／構築 24人日／単価は別表\n5. 導入の進め方 ─ 3か月、月次で効果を確認\n6. 次のステップ\n\n※削減時間は推計です。現在の検査件数と1件あたりの所要時間をいただければ、実数に置き換えます。'
+    },
+    {
+      ask: '@bot さっきの打合せの議事録をまとめて。参加者は4名、決まったのは工程表の見直しと、見積の再提出。',
+      chips: ['受付', 'ノウハウ照合', '共通2件＋議事録1件', '生成', '投稿'],
+      reply: '議事録です。\n\n■ 決まったこと\n・工程表を見直す（担当：要確認／期限：要確認）\n・見積を再提出する（担当：要確認／期限：要確認）\n\n■ 持ち帰り\n・なし\n\n担当と期限が伺えていないため、要確認としています。お分かりになる範囲で教えていただければ埋めます。'
+    },
+    {
+      ask: '@bot 提案書の費用のページ、総額だけ大きく出して内訳は載せないで。',
+      chips: ['受付', 'ノウハウ照合', '共通2件＋提案書1件', '生成', '投稿'],
+      reply: '社内ルールを優先し、工程ごとの人日と単価を併記した形で作成しました。\n\n■ 費用\n　要件定義　 8人日\n　構築　　　24人日\n　テスト　　 6人日\n　（単価は別表のとおり）\n　総額：別表の合計\n\n※「価格の見せ方」のルールにより、内訳を省略しない形にしています。省略が必要な事情がある場合は、ルール側の見直しをご検討ください。'
+    }
+  ];
+
+  function bubble(who, text, right, botAvatar) {
+    var wrapEl = document.createElement('div');
+    wrapEl.className = 'msg' + (right ? ' right' : '');
+    var av = document.createElement('span');
+    av.className = 'av' + (botAvatar ? ' bot' : '');
+    av.textContent = botAvatar ? 'B' : 'U';
+    var col = document.createElement('div');
+    var w = document.createElement('p');
+    w.className = 'who';
+    w.textContent = who + ' · ' + now();
+    var b = document.createElement('div');
+    b.className = 'bub';
+    b.textContent = text;
+    col.appendChild(w); col.appendChild(b);
+    wrapEl.appendChild(av); wrapEl.appendChild(col);
+    stream.appendChild(wrapEl);
+    stream.scrollTop = stream.scrollHeight;
+    return b;
+  }
+
+  function setBusy(on) {
+    Array.prototype.forEach.call(ctl.querySelectorAll('button.ask'), function (b) {
+      if (b.id !== 'reset') b.disabled = on;
+    });
+  }
+
+  function run(i) {
+    var s = SCRIPTS[i];
+    setBusy(true);
+    bubble('あなた', s.ask, true, false);
+
+    var host = bubble('ノウハウBot', '受け付けました。順番に処理します。', false, true);
+    var chips = document.createElement('div');
+    chips.className = 'steps-live';
+    s.chips.forEach(function (c) {
+      var el = document.createElement('span');
+      el.className = 'chip';
+      el.textContent = c;
+      chips.appendChild(el);
+    });
+    host.parentNode.appendChild(chips);
+
+    var step = 0;
+    var timer = setInterval(function () {
+      if (step < chips.children.length) {
+        chips.children[step].classList.add('on');
+        step++;
+        stream.scrollTop = stream.scrollHeight;
+      } else {
+        clearInterval(timer);
+        bubble('ノウハウBot', s.reply, false, true);
+        setBusy(false);
+      }
+    }, 520);
+  }
+
+  ctl.addEventListener('click', function (e) {
+    var b = e.target.closest('button');
+    if (!b) return;
+    if (b.id === 'reset') {
+      stream.innerHTML = '';
+      bubble('ノウハウBot', 'このルームで待機しています。@bot に続けて依頼を書いてください。', false, true);
+      setBusy(false);
+      return;
+    }
+    if (b.disabled) return;
+    run(Number(b.getAttribute('data-i')));
+  });
+})();
+</script>
+</body>
+</html>
