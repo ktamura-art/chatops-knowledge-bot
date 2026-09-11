@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>社内ノウハウBot 設計書</title>
+<title>共有AIエージェント 構成案</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=BIZ+UDPGothic:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
 :root{
@@ -38,13 +38,12 @@
 *{box-sizing:border-box}
 body{background:var(--paper);color:var(--ink);font-family:var(--f-sans);
   font-size:15px;line-height:1.85;margin:0;-webkit-font-smoothing:antialiased}
-.wrap{max-width:1000px;margin:0 auto;padding:0 22px 92px}
+.wrap{max-width:1020px;margin:0 auto;padding:0 22px 92px}
 h1,h2,h3{font-family:var(--f-head);text-wrap:balance}
 a{color:var(--accent);text-underline-offset:2px}
 a:focus-visible,summary:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 p{margin:0 0 14px;max-width:70ch}
-ul,ol{max-width:70ch}
-li{margin:0 0 6px}
+ul,ol{max-width:70ch} li{margin:0 0 6px}
 
 header.top{padding:52px 0 26px;border-bottom:2px solid var(--ink)}
 .eyebrow{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.16em;
@@ -73,7 +72,7 @@ h3::before{content:"";width:6px;height:6px;background:var(--accent);flex:0 0 aut
 h4{font-size:14px;font-weight:700;margin:22px 0 8px;color:var(--ink2)}
 
 .scroll{overflow-x:auto;border:1px solid var(--line);background:var(--surface);margin:0 0 20px}
-table{border-collapse:collapse;width:100%;min-width:560px;font-size:13.5px}
+table{border-collapse:collapse;width:100%;min-width:600px;font-size:13.5px}
 th,td{padding:10px 13px;text-align:left;border-bottom:1px solid var(--line);
   vertical-align:top;line-height:1.65}
 thead th{background:var(--surface2);font-size:12px;font-weight:700;color:var(--ink2);white-space:nowrap}
@@ -81,6 +80,7 @@ tbody tr:last-child td{border-bottom:none}
 td.k{font-weight:700;white-space:nowrap}
 .hi{background:var(--accent-soft)}
 .no{background:var(--risk-soft)}
+.mid{background:var(--warn-soft)}
 
 .p{display:inline-block;font-family:var(--f-mono);font-size:10.5px;padding:2px 7px;
   border:1px solid currentColor;white-space:nowrap;line-height:1.6}
@@ -100,43 +100,21 @@ figure svg{display:block;width:100%;height:auto;color:var(--ink);font-family:var
 figcaption{font-size:12.5px;color:var(--ink3);margin-top:13px;line-height:1.75;
   border-top:1px solid var(--line);padding-top:10px}
 
-/* 役割の切り替え */
-.roles{background:var(--surface);border:1px solid var(--line);margin:24px 0}
-.roles-bar{display:flex;flex-wrap:wrap;gap:8px;padding:14px 16px;
-  border-bottom:1px solid var(--line);background:var(--surface2);align-items:center}
-.roles-bar > span{font-family:var(--f-mono);font-size:11.5px;color:var(--ink3);margin-right:4px}
-button.role{font-family:var(--f-sans);font-size:13px;padding:6px 13px;cursor:pointer;
-  background:var(--surface);color:var(--ink);border:1px solid var(--line2)}
-button.role:hover{border-color:var(--accent);color:var(--accent)}
-button.role[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
-.roles-body{padding:4px 0 0}
-.roles-body table{min-width:520px}
-.roles-note{padding:14px 16px;border-top:1px solid var(--line);font-size:13px;
-  color:var(--ink2);background:var(--surface2)}
-
-ol.setup{list-style:none;padding:0;margin:22px 0;counter-reset:s;max-width:none}
-ol.setup>li{counter-increment:s;border:1px solid var(--line);background:var(--surface);
-  margin:0 0 10px;padding:16px 18px 16px 58px;position:relative}
-ol.setup>li::before{content:counter(s,decimal-leading-zero);position:absolute;left:18px;top:15px;
+.phase{display:grid;gap:10px;margin:22px 0}
+.phase>div{border:1px solid var(--line);background:var(--surface);padding:16px 18px 16px 60px;position:relative}
+.phase>div::before{content:attr(data-n);position:absolute;left:18px;top:15px;
   font-family:var(--f-mono);font-size:12px;color:var(--accent);font-weight:600}
-ol.setup h3{margin:0 0 7px;font-size:15px}
-ol.setup h3::before{display:none}
-ol.setup p{font-size:14px;margin:0 0 8px}
-ol.setup>li>:last-child{margin-bottom:0}
-
-details{border:1px solid var(--line);background:var(--surface2);margin:10px 0 0}
-summary{cursor:pointer;padding:9px 13px;font-family:var(--f-mono);font-size:12px;color:var(--ink2)}
-summary:hover{color:var(--accent)}
-details[open] summary{border-bottom:1px solid var(--line)}
-pre{margin:0;padding:14px;overflow-x:auto;font-family:var(--f-mono);font-size:12px;
-  line-height:1.75;background:var(--surface);color:var(--ink)}
-code{font-family:var(--f-mono);font-size:.87em;background:var(--surface2);
-  padding:1px 5px;border:1px solid var(--line)}
-pre code{background:none;border:none;padding:0}
+.phase h3{margin:0 0 6px;font-size:15px}
+.phase h3::before{display:none}
+.phase p{font-size:14px;margin:0 0 6px}
+.phase>div>:last-child{margin-bottom:0}
+.phase .when{font-family:var(--f-mono);font-size:11px;color:var(--ink3);margin-top:8px}
 
 .src{font-family:var(--f-mono);font-size:11.5px;color:var(--ink3);
   margin:-6px 0 24px;line-height:1.8}
 .src b{color:var(--ink2);font-weight:600}
+code{font-family:var(--f-mono);font-size:.87em;background:var(--surface2);
+  padding:1px 5px;border:1px solid var(--line)}
 
 footer{margin-top:70px;padding-top:20px;border-top:2px solid var(--ink);
   font-size:12.5px;color:var(--ink3);display:flex;justify-content:space-between;
@@ -148,532 +126,285 @@ footer{margin-top:70px;padding-top:20px;border-top:2px solid var(--ink);
 <div class="wrap">
 
 <header class="top">
-  <p class="eyebrow">設計書 ／ ChatOps</p>
-  <h1>社内ノウハウBot</h1>
-  <p class="sub">チャットから指示を出すと、社内に蓄積したノウハウを踏まえて回答・資料を返す仕組み。システム構成、設定手順、そして<b>利用者ごとに情報を出し分けられるか</b>を整理しています。</p>
+  <p class="eyebrow">調査結果と推奨構成</p>
+  <h1>共有AIエージェント</h1>
+  <p class="sub">チャットに1体のエージェントを置き、全社員がそこへ依頼する構成。ご要望を実現する3つの方式を調査し、メリットと制約を比較したうえで推奨をまとめました。</p>
   <div class="meta">
-    <span>Google Apps Script ＋ 生成AI API</span>
     <span>2026年9月</span>
     <span>株式会社デジライズ</span>
   </div>
 </header>
 
 <div class="tldr">
-  <h2>先に結論</h2>
+  <h2>結論</h2>
   <ol>
-    <li><b>自社で組めば、利用者ごとの出し分けはできます。</b>送信者IDを起点に、参照するノウハウ・回答内容・保存先の3つを切り替えます。</li>
-    <li><b>既製のチャット連携では、人単位では分かれません。</b>アクセス範囲は「誰が聞いたか」ではなく「どのチャンネルか」で決まる設計です。</li>
-    <li><b>いちばんの落とし穴は、出し分けではなく置き場所です。</b>グループチャットに投稿した時点で、そこにいる全員が読めます。分けたいなら返す先を変える必要があります。</li>
+    <li><b>ご構想はそのまま実現できます。</b>チャット側に専用アカウントを1つ作り、そこへメンションする形です。</li>
+    <li><b>ただし、生成AI側のアカウントを共有してはいけません。</b>利用規約で禁止されています。<b>APIを1本使う形</b>に置き換えれば、狙いどおり費用は1本化できます。</li>
+    <li><b>既製の連携機能では、ご要望を満たせません。</b>片方のチャットツールに非対応で、かつ利用者ごとの出し分けができないためです。</li>
+    <li><b>参加ルームが数千あっても問題ありません。</b>「エージェント宛てのメンション」だけを受け取る仕組みが用意されています。</li>
   </ol>
 </div>
 
-<!-- ===== 00 作らない選択肢 ===== -->
+<!-- ===== 01 要望の整理 ===== -->
 <section>
-  <span class="snum">00</span>
-  <h2>その前に ── 作らずに済むか</h2>
-  <p class="lede">本書は自社で組む場合の設計です。ただし、<b>設定だけで済む道が2つあります。</b>先にそちらで足りないかを確かめてください。</p>
+  <span class="snum">01</span>
+  <h2>いただいたご要望</h2>
+  <p class="lede">お打ち合わせで挙がった内容を、実現方式の判断に効く形で整理しました。</p>
 
   <div class="scroll">
     <table>
-      <thead><tr><th>要件</th><th>ナレッジ共有機能</th><th>チャット連携機能</th><th>自社で組む（本書）</th></tr></thead>
+      <thead><tr><th>ご要望</th><th>実現への影響</th></tr></thead>
       <tbody>
-        <tr><td class="k">コードが要らない</td><td class="hi"><b>要らない</b></td><td class="hi"><b>要らない</b></td><td class="no">要る</td></tr>
-        <tr><td class="k">チャットから指示</td><td class="no">できない<br><span style="font-size:12px;opacity:.75">専用画面から使う</span></td><td class="hi"><b>できる</b></td><td class="hi"><b>できる</b></td></tr>
-        <tr><td class="k">チャットツールを選べる</td><td>—</td><td class="no">限られる</td><td class="hi"><b>選べる</b></td></tr>
-        <tr><td class="k">共通ノウハウ</td><td class="hi"><b>できる</b></td><td class="hi"><b>できる</b></td><td class="hi"><b>できる</b></td></tr>
-        <tr><td class="k">利用者ごとの出し分け</td><td class="hi"><b>できる</b><br><span style="font-size:12px;opacity:.75">単位を分けて招待する</span></td><td class="no">できない<br><span style="font-size:12px;opacity:.75">チャンネル単位まで</span></td><td class="hi"><b>できる</b></td></tr>
-        <tr><td class="k">結果が他人に見えない</td><td class="hi"><b>既定で非公開</b></td><td class="no">同じ場の全員が読める</td><td class="hi"><b>返す先を変えられる</b></td></tr>
-        <tr><td class="k">会話の続き</td><td class="hi"><b>できる</b></td><td class="hi"><b>できる</b></td><td class="no">1往復で完結</td></tr>
-        <tr><td class="k">必要な契約</td><td><b>上位プラン</b></td><td><b>上位プラン</b></td><td class="hi"><b>現状のまま</b></td></tr>
+        <tr><td class="k">1体のエージェントに全社員がメンションして使う</td><td>チャット側に専用アカウントを1つ用意する</td></tr>
+        <tr><td class="k">2つのチャットツールの両方から使いたい</td><td><b>既製の連携機能は片方にしか対応していません</b></td></tr>
+        <tr><td class="k">ノウハウ・過去資料・体裁の規約を覚えさせる</td><td>知識の置き場所を、ツールの外に持つ</td></tr>
+        <tr><td class="k">資料・メルマガ・バナーを作らせる</td><td>用途ごとに指示を分ける（後述）</td></tr>
+        <tr><td class="k">社内マニュアルを読ませ、回答を蓄積させる</td><td>読むだけでなく<b>書き戻す</b>設計が要る</td></tr>
+        <tr><td class="k">一部の情報は特定の人にしか見せない</td><td><b>既製の連携機能ではできません</b></td></tr>
+        <tr><td class="k">伝言を、相手に合わせて要約して伝える</td><td>同上</td></tr>
+        <tr><td class="k">1時間ごとに動きを報告させる</td><td>定期実行を持つ</td></tr>
+        <tr><td class="k">各自の利用枠を消費させたくない</td><td>費用を1本に集約する</td></tr>
+        <tr><td class="k">参加ルームが数千ある</td><td>全部を見に行く作りにはできない</td></tr>
       </tbody>
     </table>
   </div>
 
   <div class="box ok">
-    <p class="box-t"><span class="p p-ok">判断</span>トレードオフは「プラン」か「開発」か</p>
-    <p style="margin-bottom:0">設定だけで済ませる道は、<b>どちらも上位プランが前提</b>です。現在の契約のまま進めたい場合にだけ、自社で組む意味があります。<b>先に設定で試し、足りなかった点だけを開発で埋める</b>のが安全な順序です。作ってから「設定で足りた」と分かるのが、いちばん避けたい結末です。</p>
-  </div>
-
-  <div class="box warn">
-    <p class="box-t"><span class="p p-warn">注意</span>ナレッジ共有機能の内容は、チャット連携側からは読まれません</p>
-    <p style="margin-bottom:0">同じ提供元の機能でも、<b>専用画面に貯めたナレッジと指示は、チャット連携側には届きません</b>。両方を使う場合、ノウハウを二重に持つことになります。どちらか一方に寄せてください。</p>
+    <p class="box-t"><span class="p p-ok">確認できました</span>数千ルームでも問題ありません</p>
+    <p style="margin-bottom:0">チャット側に<b>「自分へのメンション」だけを通知する仕組み</b>が用意されています。全ルームを巡回する必要がなく、<b>エージェント宛てに呼ばれたときだけ動きます</b>。参加ルーム数は制約になりません。</p>
   </div>
 </section>
 
-<!-- ===== 01 システム構成 ===== -->
+<!-- ===== 02 3方式の比較 ===== -->
 <section>
-  <span class="snum">01</span>
-  <h2>システム構成</h2>
-  <p class="lede">6つの層に分かれます。入れ替えが起きるのは入力層と生成層だけで、間の4層は共通です。</p>
+  <span class="snum">02</span>
+  <h2>3つの方式 ── メリットとデメリット</h2>
+  <p class="lede">ご要望を満たしうる方式は3つあります。実際に公式ドキュメントで可否を確認しました。</p>
+
+  <div class="scroll">
+    <table>
+      <thead>
+        <tr><th>　</th><th>A案<br>既製のチャット連携</th><th>B案<br>ナレッジ共有機能</th><th>C案<br>専用エージェントを作る</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="k">実体</td><td>チャンネルに置く共有Bot</td><td>共有の作業場</td><td>チャット側の専用アカウント</td></tr>
+        <tr><td class="k">2つ目のチャットツール</td><td class="no"><b>非対応</b></td><td class="no">チャットから使わない</td><td class="hi"><b>両方に対応できる</b></td></tr>
+        <tr><td class="k">1体にメンションして使う</td><td class="hi"><b>できる</b></td><td class="no">できない</td><td class="hi"><b>できる</b></td></tr>
+        <tr><td class="k">ノウハウを覚えさせる</td><td class="hi">できる</td><td class="hi">できる</td><td class="hi">できる</td></tr>
+        <tr><td class="k">利用者ごとの出し分け</td><td class="no"><b>できない</b><br><span style="font-size:12px;opacity:.75">場所単位まで</span></td><td class="hi"><b>できる</b><br><span style="font-size:12px;opacity:.75">作業場を分けて招待</span></td><td class="hi"><b>できる</b><br><span style="font-size:12px;opacity:.75">送信者ごとに制御</span></td></tr>
+        <tr><td class="k">結果を他の人に見せない</td><td class="no"><b>できない</b><br><span style="font-size:12px;opacity:.75">同じ場の全員が読める</span></td><td class="hi"><b>既定で非公開</b></td><td class="hi"><b>返す先を変えられる</b></td></tr>
+        <tr><td class="k">マニュアルへの書き戻し</td><td class="mid">記憶は貯まる</td><td class="mid">人が更新する</td><td class="hi"><b>自動で追記できる</b></td></tr>
+        <tr><td class="k">定期報告</td><td class="hi">できる</td><td class="no">できない</td><td class="hi">できる</td></tr>
+        <tr><td class="k">費用の集約</td><td class="hi">組織の残高から</td><td class="no">各自の枠を消費</td><td class="hi"><b>API 1本に集約</b></td></tr>
+        <tr><td class="k">開発</td><td class="hi"><b>不要</b></td><td class="hi"><b>不要</b></td><td class="no">必要</td></tr>
+        <tr><td class="k">契約の変更</td><td class="no"><b>上位プランが必要</b></td><td class="no"><b>上位プランが必要</b></td><td class="hi"><b>現状のまま</b><br><span style="font-size:12px;opacity:.75">API利用料が別途</span></td></tr>
+        <tr><td class="k">既存の会話履歴</td><td class="mid">移行時に引き継げない</td><td class="mid">同左</td><td class="hi"><b>影響しない</b></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="box risk">
+    <p class="box-t"><span class="p p-risk">A案が外れる理由</span>2つの条件に同時に引っかかります</p>
+    <p><b>① 片方のチャットツールに対応していません。</b>公式に案内があるのは1つのツールと、今後対応予定のもう1つだけです。ご利用中のもう一方は、いずれにも含まれていません。</p>
+    <p style="margin-bottom:0"><b>② 利用者ごとの出し分けができません。</b>到達できる範囲は「誰が聞いたか」ではなく「どの場所で聞いたか」で決まる設計です。さらに、返答はその場の全員が読めます。<b>「一部の情報は特定の人にしか見せない」というご要望と、正面からぶつかります。</b></p>
+  </div>
+
+  <div class="box warn">
+    <p class="box-t"><span class="p p-warn">重要</span>生成AI側のアカウントは共有できません</p>
+    <p>「1つの上位プランを契約して、全員でそこに指示を出す」形は、<b>利用規約で明確に禁止されています。</b></p>
+    <p><code>You may not share your Account login information, ... or Account credentials with anyone else. You also may not make your Account available to anyone else.</code></p>
+    <p style="margin-bottom:0"><b>ただし、狙いは別の形で達成できます。</b>C案では鍵を誰にも配らず、サーバー側だけが保持します。利用者はチャットに書くだけで、鍵にも管理画面にも触れません。<b>費用は API 1本にまとまり、各自の利用枠も消費しません。</b>ご意図はそのまま実現できます。</p>
+  </div>
+</section>
+
+<!-- ===== 03 構成図 ===== -->
+<section>
+  <span class="snum">03</span>
+  <h2>推奨構成（C案）</h2>
+  <p class="lede">2つのチャットツールから同じエージェントを呼び、同じノウハウで答える形です。</p>
 
   <figure>
-    <svg viewBox="0 0 900 470" role="img" aria-label="6層に分かれたシステム構成図">
+    <svg viewBox="0 0 920 500" role="img" aria-label="2つのチャットツールから共有エージェントを呼ぶ構成図">
       <defs>
         <marker id="a" markerWidth="8" markerHeight="8" refX="7.2" refY="4" orient="auto">
           <path d="M0,0 L8,4 L0,8 Z" fill="currentColor"/>
         </marker>
       </defs>
 
-      <!-- 層の帯 -->
-      <g opacity=".5" stroke="currentColor" stroke-width="1" stroke-dasharray="3 3" fill="none">
-        <line x1="150" y1="8"   x2="150" y2="462"/>
-      </g>
-      <g fill="currentColor" font-size="11.5" opacity=".62" text-anchor="end">
-        <text x="132" y="44">入力層</text>
-        <text x="132" y="116">受付層</text>
-        <text x="132" y="200">制御層</text>
-        <text x="132" y="284">知識層</text>
-        <text x="132" y="356">生成層</text>
-        <text x="132" y="428">出力層</text>
-      </g>
-
-      <!-- 入力層 -->
       <g fill="none" stroke="currentColor" stroke-width="1.4">
-        <rect x="168" y="22" width="150" height="42"/>
-        <rect x="342" y="22" width="150" height="42"/>
-      </g>
-      <g fill="currentColor" font-size="12.5" text-anchor="middle">
-        <text x="243" y="48">グループチャット</text>
-        <text x="417" y="48">ダイレクトチャット</text>
-      </g>
-
-      <!-- 受付層 -->
-      <g fill="none" stroke="currentColor" stroke-width="1.4">
-        <rect x="168" y="94" width="324" height="44"/>
+        <rect x="20" y="30" width="180" height="52"/>
+        <rect x="20" y="102" width="180" height="52"/>
       </g>
       <g fill="currentColor" text-anchor="middle">
-        <text x="330" y="113" font-size="12.5" font-weight="700">受け口（Webアプリ）</text>
-        <text x="330" y="130" font-size="10.5" opacity=".7">許可ルームの照合 ／ 重複の排除 ／ 10秒以内に応答</text>
+        <text x="110" y="52" font-size="13" font-weight="700">チャットツール A</text>
+        <text x="110" y="70" font-size="10.5" opacity=".7">専用アカウントにメンション</text>
+        <text x="110" y="124" font-size="13" font-weight="700">チャットツール B</text>
+        <text x="110" y="142" font-size="10.5" opacity=".7">同じ名前の専用アカウント</text>
       </g>
 
-      <!-- 制御層 -->
+      <g fill="none" stroke="currentColor" stroke-width="1.4"><rect x="262" y="58" width="170" height="68"/></g>
+      <g fill="currentColor" text-anchor="middle">
+        <text x="347" y="82" font-size="13" font-weight="700">受け口</text>
+        <text x="347" y="100" font-size="10.5" opacity=".7">署名を検証</text>
+        <text x="347" y="116" font-size="10.5" opacity=".7">10秒以内に応答</text>
+      </g>
+
       <g fill="none" stroke="currentColor" stroke-width="1.4">
-        <rect x="168" y="168" width="150" height="56"/>
-        <rect x="342" y="168" width="150" height="56"/>
-        <rect x="516" y="168" width="150" height="56"/>
+        <rect x="262" y="176" width="170" height="56"/>
+        <rect x="262" y="256" width="170" height="56"/>
       </g>
       <g fill="currentColor" text-anchor="middle">
-        <text x="243" y="192" font-size="12.5" font-weight="700">受付表</text>
-        <text x="243" y="210" font-size="10.5" opacity=".7">順番待ち・状態</text>
-        <text x="417" y="192" font-size="12.5" font-weight="700">権限表</text>
-        <text x="417" y="210" font-size="10.5" opacity=".7">送信者ID→役割</text>
-        <text x="591" y="192" font-size="12.5" font-weight="700">定期実行</text>
-        <text x="591" y="210" font-size="10.5" opacity=".7">1分ごと</text>
+        <text x="347" y="200" font-size="13" font-weight="700">受付表</text>
+        <text x="347" y="218" font-size="10.5" opacity=".7">順番待ち</text>
+        <text x="347" y="280" font-size="13" font-weight="700">権限表</text>
+        <text x="347" y="298" font-size="10.5" opacity=".7">誰に何を見せるか</text>
       </g>
 
-      <!-- 知識層 -->
+      <g fill="none" stroke="currentColor" stroke-width="1.4"><rect x="494" y="176" width="180" height="136"/></g>
+      <g fill="currentColor" text-anchor="middle">
+        <text x="584" y="202" font-size="13" font-weight="700">知識</text>
+        <text x="584" y="224" font-size="10.5" opacity=".7">社内マニュアル</text>
+        <text x="584" y="242" font-size="10.5" opacity=".7">体裁の規約</text>
+        <text x="584" y="260" font-size="10.5" opacity=".7">過去の資料</text>
+        <text x="584" y="278" font-size="10.5" opacity=".7">テンプレート</text>
+        <text x="584" y="300" font-size="10.5" opacity=".62">※回答が自動で追記される</text>
+      </g>
+
+      <g fill="none" stroke="currentColor" stroke-width="1.4"><rect x="736" y="204" width="160" height="80"/></g>
+      <g fill="currentColor" text-anchor="middle">
+        <text x="816" y="234" font-size="13" font-weight="700">生成AI</text>
+        <text x="816" y="254" font-size="10.5" opacity=".7">API 1本</text>
+        <text x="816" y="270" font-size="10.5" opacity=".7">費用はここに集約</text>
+      </g>
+
       <g fill="none" stroke="currentColor" stroke-width="1.4">
-        <rect x="168" y="254" width="220" height="52"/>
-        <rect x="412" y="254" width="220" height="52"/>
+        <rect x="262" y="386" width="160" height="56"/>
+        <rect x="446" y="386" width="160" height="56"/>
+        <rect x="630" y="386" width="160" height="56"/>
       </g>
       <g fill="currentColor" text-anchor="middle">
-        <text x="278" y="277" font-size="12.5" font-weight="700">ノウハウ表</text>
-        <text x="278" y="295" font-size="10.5" opacity=".7">規則＋適用条件＋閲覧範囲</text>
-        <text x="522" y="277" font-size="12.5" font-weight="700">テンプレート</text>
-        <text x="522" y="295" font-size="10.5" opacity=".7">体裁・図版を持つ</text>
+        <text x="342" y="410" font-size="12.5" font-weight="700">ルームへ返信</text>
+        <text x="342" y="428" font-size="10.5" opacity=".7">全員が読める</text>
+        <text x="526" y="410" font-size="12.5" font-weight="700">本人へ個別に</text>
+        <text x="526" y="428" font-size="10.5" opacity=".7">本人だけ</text>
+        <text x="710" y="410" font-size="12.5" font-weight="700">ドライブ保存</text>
+        <text x="710" y="428" font-size="10.5" opacity=".7">フォルダ権限に従う</text>
       </g>
 
-      <!-- 生成層 -->
-      <g fill="none" stroke="currentColor" stroke-width="1.4">
-        <rect x="168" y="334" width="324" height="44"/>
-      </g>
-      <g fill="currentColor" text-anchor="middle">
-        <text x="330" y="353" font-size="12.5" font-weight="700">生成AI</text>
-        <text x="330" y="370" font-size="10.5" opacity=".7">役割定義＋共通規則＋該当規則＋依頼文</text>
-      </g>
-
-      <!-- 出力層 -->
-      <g fill="none" stroke="currentColor" stroke-width="1.4">
-        <rect x="168" y="406" width="150" height="44"/>
-        <rect x="342" y="406" width="150" height="44"/>
-        <rect x="516" y="406" width="150" height="44"/>
-      </g>
-      <g fill="currentColor" text-anchor="middle">
-        <text x="243" y="426" font-size="12.5" font-weight="700">ルームへ投稿</text>
-        <text x="243" y="442" font-size="10.5" opacity=".7">全員が読める</text>
-        <text x="417" y="426" font-size="12.5" font-weight="700">本人へDM</text>
-        <text x="417" y="442" font-size="10.5" opacity=".7">本人だけ</text>
-        <text x="591" y="426" font-size="12.5" font-weight="700">ドライブ保存</text>
-        <text x="591" y="442" font-size="10.5" opacity=".7">フォルダ権限に従う</text>
-      </g>
-
-      <!-- 縦の流れ -->
       <g stroke="currentColor" stroke-width="1.4" marker-end="url(#a)" fill="none">
-        <path d="M330,66 L330,90"/>
-        <path d="M243,140 L243,164"/>
-        <path d="M417,226 L417,250"/>
-        <path d="M330,308 L330,330"/>
-        <path d="M330,380 L330,402"/>
-        <path d="M591,226 C591,238 480,238 420,250"/>
-        <path d="M243,226 C243,238 300,240 330,250"/>
+        <path d="M204,56 L256,72"/>
+        <path d="M204,128 L256,112"/>
+        <path d="M347,130 L347,172"/>
+        <path d="M347,236 L347,252"/>
+        <path d="M436,232 L490,232"/>
+        <path d="M678,244 L732,244"/>
+        <path d="M816,288 C816,340 600,340 430,380"/>
       </g>
-
-      <!-- 権限表からの分岐（出し分けの経路） -->
-      <g stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 3" fill="none" marker-end="url(#a)">
-        <path d="M492,196 C700,196 760,300 700,400"/>
+      <g stroke="currentColor" stroke-width="1.3" stroke-dasharray="4 3" fill="none" marker-end="url(#a)">
+        <path d="M436,290 C470,300 470,300 500,300"/>
+        <path d="M760,292 C700,330 650,330 590,314"/>
       </g>
-      <g fill="currentColor" font-size="10.5" opacity=".72">
-        <text x="700" y="250">権限表が</text>
-        <text x="700" y="266">出力先も決める</text>
+      <g fill="currentColor" font-size="10.5" opacity=".7">
+        <text x="440" y="330">権限に応じて渡す知識を絞る</text>
+        <text x="612" y="352">回答を知識へ書き戻す</text>
+        <text x="20" y="470" font-size="11.5" opacity=".9">1体のエージェントが、どちらのチャットからでも同じノウハウで答えます。知識はツールの外に置くため、片方のツールを変えても資産は残ります。</text>
       </g>
     </svg>
-    <figcaption>出し分けの中心は<b>権限表</b>です。ここが「どの規則を読ませるか」と「どこへ返すか」の両方を決めます。</figcaption>
+    <figcaption>知識をチャットツールの外に持つのが要点です。ツールを乗り換えても、蓄積したノウハウはそのまま使えます。</figcaption>
   </figure>
 
-  <h3>層ごとの役割</h3>
+  <h3>この構成で満たせるご要望</h3>
   <div class="scroll">
     <table>
-      <thead><tr><th>層</th><th>持つもの</th><th>差し替えやすさ</th></tr></thead>
+      <thead><tr><th>ご要望</th><th>どう満たすか</th></tr></thead>
       <tbody>
-        <tr><td class="k">入力層</td><td>チャットツール</td><td><span class="p p-warn">要改修</span> ツールごとに受け口が変わる</td></tr>
-        <tr><td class="k">受付層</td><td>Webアプリの受け口</td><td>共通</td></tr>
-        <tr><td class="k">制御層</td><td>受付表・権限表・定期実行</td><td>共通</td></tr>
-        <tr><td class="k">知識層</td><td>ノウハウ表・テンプレート</td><td>共通。<b>ここが資産になります</b></td></tr>
-        <tr><td class="k">生成層</td><td>生成AIのAPI</td><td><span class="p p-ok">差し替え可</span> 呼び出し箇所は1か所</td></tr>
-        <tr><td class="k">出力層</td><td>投稿・DM・ドライブ保存</td><td>共通</td></tr>
+        <tr><td class="k">1体にメンションして使う</td><td>各チャットに同じ名前の専用アカウントを作り、そこへのメンションだけを拾います</td></tr>
+        <tr><td class="k">両方のツールから</td><td>受け口を2つ用意し、その先は共通です。<b>知識は1か所</b>なので、どちらから聞いても同じ答えになります</td></tr>
+        <tr><td class="k">情報の出し分け</td><td>送信者を権限表と照合し、<b>渡す知識・返す先・保存先</b>の3つを切り替えます</td></tr>
+        <tr><td class="k">伝言の要約</td><td>受け取り手の権限を見て、見せてよい範囲だけで要約させます</td></tr>
+        <tr><td class="k">マニュアルの蓄積</td><td>回答した内容を知識側へ追記します。<b>使うほど厚くなります</b></td></tr>
+        <tr><td class="k">1時間ごとの報告</td><td>定期実行で、その間の依頼と回答をまとめて代表宛てに送ります</td></tr>
+        <tr><td class="k">各自の枠を使わせない</td><td>APIを1本使うため、社員側の利用枠は消費しません</td></tr>
       </tbody>
     </table>
-  </div>
-
-  <div class="box">
-    <p class="box-t">なぜ受付層と制御層を分けるのか</p>
-    <p style="margin-bottom:0">チャット側の通知は<b>10秒以内に応答しないと切断され、再送もされません</b>。資料生成は数十秒から数分かかるため、受け取りと処理を分けないと依頼が消えます。受け口は「積むだけ」に徹し、生成は定期実行に切り出しています。</p>
   </div>
 </section>
 
-<!-- ===== 02 出し分け ===== -->
-<section>
-  <span class="snum">02</span>
-  <h2>利用者ごとの出し分け</h2>
-  <p class="lede">「できるか」の答えは、どちらの構成を採るかで変わります。先に結論を表にします。</p>
-
-  <div class="scroll">
-    <table>
-      <thead><tr><th>やりたいこと</th><th>自社で組む場合</th><th>既製のチャット連携</th></tr></thead>
-      <tbody>
-        <tr>
-          <td class="k">参照する社内ルールを人で変える</td>
-          <td class="hi"><b>できる</b><br>権限表で閲覧範囲を絞る</td>
-          <td class="no"><b>できない</b><br>チャンネル単位で固定</td>
-        </tr>
-        <tr>
-          <td class="k">回答の粒度・言い回しを人で変える</td>
-          <td class="hi"><b>できる</b><br>役割を指示文に混ぜる</td>
-          <td class="no"><b>できない</b><br>同じチャンネルなら同じ</td>
-        </tr>
-        <tr>
-          <td class="k">到達できるデータを人で変える</td>
-          <td class="hi"><b>できる</b><br>接続情報を役割ごとに持つ</td>
-          <td><span class="p p-warn">条件つき</span><br>本人の個人接続を、本人の依頼にだけ使う方式が一部提供</td>
-        </tr>
-        <tr>
-          <td class="k">結果を他の人に見せない</td>
-          <td class="hi"><b>できる</b><br>ダイレクトチャットへ返す</td>
-          <td class="no"><b>できない</b><br>チャンネルの投稿は全員が読める</td>
-        </tr>
-        <tr>
-          <td class="k">誰が何をしたかを残す</td>
-          <td class="hi"><b>できる</b><br>実行ログに記録</td>
-          <td class="hi"><b>できる</b><br>依頼者の名前で記録</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="box risk">
-    <p class="box-t"><span class="p p-risk">最大の注意</span>出し分けの前に、置き場所の問題があります</p>
-    <p style="margin-bottom:0">どれだけ丁寧に内容を絞っても、<b>グループチャットに投稿した時点で、そこにいる全員が読めます</b>。役職者向けの数字を一般のルームに返せば、絞った意味がありません。<b>出し分けとは、内容を変えることではなく、返す先を変えることです。</b></p>
-  </div>
-
-  <h3>4段階で絞ります</h3>
-  <div class="scroll">
-    <table>
-      <thead><tr><th>段</th><th>絞るもの</th><th>判定に使うもの</th><th>外したときに起きること</th></tr></thead>
-      <tbody>
-        <tr><td class="k">1</td><td>そもそも反応するか</td><td>ルームID</td><td>関係ないルームで動き、費用だけ増える</td></tr>
-        <tr><td class="k">2</td><td>読ませる社内ルール</td><td>送信者ID → 役割 → 閲覧範囲</td><td>見せてはいけない基準が回答に混ざる</td></tr>
-        <tr><td class="k">3</td><td>返す先</td><td>役割 ＋ 内容の機微度</td><td><b>全員に見える</b></td></tr>
-        <tr><td class="k">4</td><td>保存先の権限</td><td>役割 → フォルダ</td><td>リンクを踏めば誰でも開ける</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <h3>役割ごとに何が変わるか</h3>
-  <p>権限表に役割を定義し、ノウハウ表の「閲覧範囲」列と突き合わせます。下は3つの役割の例です。ボタンで切り替えて見比べてください。</p>
-
-  <div class="roles">
-    <div class="roles-bar">
-      <span>役割を選ぶ</span>
-      <button class="role" data-r="0" aria-pressed="true">一般</button>
-      <button class="role" data-r="1" aria-pressed="false">管理職</button>
-      <button class="role" data-r="2" aria-pressed="false">役員</button>
-    </div>
-    <div class="roles-body">
-      <div class="scroll" style="border:none;margin:0">
-        <table>
-          <thead><tr><th>社内ルール</th><th>閲覧範囲</th><th id="thRole">一般 のとき</th></tr></thead>
-          <tbody id="roleRows"></tbody>
-        </table>
-      </div>
-    </div>
-    <div class="roles-note" id="roleNote"></div>
-  </div>
-
-  <h3>権限表の作り</h3>
-  <div class="scroll">
-    <table>
-      <thead><tr><th>送信者ID</th><th>氏名</th><th>役割</th><th>返す先</th><th>保存先</th></tr></thead>
-      <tbody>
-        <tr><td><code>1000001</code></td><td>担当A</td><td>一般</td><td>ルーム</td><td>共有フォルダ</td></tr>
-        <tr><td><code>1000002</code></td><td>担当B</td><td>管理職</td><td>ルーム</td><td>管理職フォルダ</td></tr>
-        <tr><td><code>1000003</code></td><td>担当C</td><td>役員</td><td><b>ダイレクトチャット</b></td><td>役員フォルダ</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="box warn">
-    <p class="box-t"><span class="p p-warn">運用</span>表に無い人はどう扱うか</p>
-    <p style="margin-bottom:0">既定を「一般」に倒すか、「反応しない」に倒すかを先に決めてください。<b>入社・異動のたびに表の更新が必要になります。</b>更新が滞ると、退職者のIDが残り続けます。人事の名簿と突き合わせる運用を、月次で入れておくのが安全です。</p>
-  </div>
-
-  <h3>既製のチャット連携の場合</h3>
-  <p>アクセス範囲は<b>「誰が聞いたか」ではなく「どのチャンネルか」</b>で決まります。同じチャンネルで聞けば、誰が聞いても同じ範囲に届きます。</p>
-  <p>例外が1つあります。<b>本人が自分の接続を使うことを許可した場合</b>に限り、その人の依頼にだけ本人の権限で動き、本人の名前で記録されます。他の人の依頼には使われません。ただし<b>一部の組織にのみ提供</b>されている機能です。</p>
-  <p>さらに、<b>その結果もチャンネルに投稿されるため、そこにいる全員が読めます</b>。投稿前に本人が確認する設定は用意されていますが、投稿した後は他の人にも見えます。</p>
-  <p class="src"><b>確認元：</b>製品提供元の公開ドキュメント（2026年9月時点）。「チャンネルでは全員が同じアクセスになる」「結果はチャンネルに残り、そこにいる全員が読める」旨の記載を確認。</p>
-
-  <div class="box ok">
-    <p class="box-t"><span class="p p-ok">使い分け</span>どちらを選ぶか</p>
-    <p style="margin-bottom:0"><b>部門ごとに分ければ足りるなら、既製の連携で十分です。</b>チャンネルを分けることが、そのまま権限を分けることになります。<b>同じ場にいる人の間で差を付けたいときだけ、自社で組む必要があります。</b></p>
-  </div>
-</section>
-
-<!-- ===== 03 ノウハウ ===== -->
-<section>
-  <span class="snum">03</span>
-  <h2>ノウハウの持たせ方</h2>
-  <p class="lede">品質を決めるのはここです。原則は1つだけです。</p>
-
-  <div class="box ok">
-    <p class="box-t"><span class="p p-ok">原則</span>元の資料を毎回読ませない。規則に圧縮して渡す</p>
-    <p style="margin-bottom:0">過去の提案書を数十ページ分そのまま読ませると、<b>遅く・高く・精度も安定しません</b>。抽出すべきものは、実際にはA4数枚に収まる規則です。一度だけ抽出して固定し、以降はその規則だけを渡します。</p>
-  </div>
-
-  <div class="scroll">
-    <table>
-      <thead><tr><th>分類</th><th>見出し</th><th>内容</th><th>適用条件</th><th>閲覧範囲</th></tr></thead>
-      <tbody>
-        <tr><td>共通</td><td class="k">結論から書く</td><td>最初の3行で結論。理由と背景はその後に置く。</td><td><em>空欄</em></td><td>全員</td></tr>
-        <tr><td>共通</td><td class="k">数値の扱い</td><td>推計値には必ず「推計」と付け、算出根拠を併記する。</td><td><em>空欄</em></td><td>全員</td></tr>
-        <tr><td>提案書</td><td class="k">価格の見せ方</td><td>総額だけでなく、工程ごとの人日と単価を必ず併記する。</td><td>提案書 見積 価格</td><td>全員</td></tr>
-        <tr><td>提案書</td><td class="k">値引きの範囲</td><td>担当判断は5%まで。超える場合は管理職の承認を得る。</td><td>見積 値引き 価格</td><td>管理職以上</td></tr>
-        <tr><td>経営</td><td class="k">原価の基準</td><td>工程別の原価率と、案件別の採算ラインの考え方。</td><td>原価 採算 利益</td><td>役員のみ</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <p><b>適用条件</b>が空欄なら常に効きます。語句を書くと、その語が依頼文に含まれるときだけ効きます。<b>閲覧範囲</b>は権限表の役割と突き合わせ、満たない人には渡しません。</p>
-
-  <h4>並べる順序に意味があります</h4>
-  <div class="scroll">
-    <table>
-      <thead><tr><th>順</th><th>置くもの</th><th>変わるか</th></tr></thead>
-      <tbody>
-        <tr><td class="k">1</td><td>役割の定義</td><td>ほぼ不変</td></tr>
-        <tr><td class="k">2</td><td>共通ルール（全員）</td><td>ほぼ不変</td></tr>
-        <tr><td class="k">3</td><td>役割で許可されたルール</td><td>人によって変わる</td></tr>
-        <tr><td class="k">4</td><td>依頼に関係するルール</td><td>依頼ごとに変わる</td></tr>
-        <tr><td class="k">5</td><td>依頼文</td><td>毎回変わる</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <p>変わらないものを先頭に置くと、送信のたびに再処理される量が減ります。順序を崩すと効かなくなります。</p>
-</section>
-
-<!-- ===== 04 手順 ===== -->
+<!-- ===== 04 段階 ===== -->
 <section>
   <span class="snum">04</span>
-  <h2>構築の手順</h2>
-  <p class="lede">上から順に進めてください。各段階に確認用の関数があるので、次へ進む前に必ず通してください。</p>
+  <h2>進め方</h2>
+  <p class="lede">まとめて作らず、効果の出る順に分けます。<b>第1段階は、契約もツールも変えずに今週できます。</b></p>
 
-  <ol class="setup">
-    <li>
-      <h3>入れ物を用意する</h3>
-      <p>スプレッドシートを1つ作ります。中のシート（受付表・権限表・ノウハウ・実行ログ）はコードが自動で作るので、空のままで構いません。</p>
-      <p>保存先フォルダは<b>役割の数だけ</b>作り、それぞれに適切な共有設定をしておきます。ここを分けないと、4段目の絞り込みが効きません。</p>
-    </li>
+  <div class="phase">
+    <div data-n="01">
+      <h3>今のスキルを分割する</h3>
+      <p>現在は資料・メルマガ・バナー・体裁の規約が<b>1つにまとまっており、用途を問わず全部が毎回読み込まれています</b>。これが「重い」の主因です。</p>
+      <p>用途ごとに分け、依頼の内容に応じて必要なものだけを読ませる形にします。<b>開発は不要で、構成を変えるだけです。</b></p>
+      <p class="when">効果：生成時間と消費量の削減 ／ 所要：数日</p>
+    </div>
+    <div data-n="02">
+      <h3>専用エージェントを1体立てる</h3>
+      <p>ご利用の多いチャットツール側に専用アカウントを作り、メンションで資料作成とマニュアル回答ができる状態にします。まずは<b>1ルーム・数名で試します</b>。</p>
+      <p class="when">効果：各自の枠を使わずに資料作成ができる ／ 所要：2〜3週間</p>
+    </div>
+    <div data-n="03">
+      <h3>出し分けと蓄積を入れる</h3>
+      <p>権限表を用意し、見せる範囲と返す先を制御します。あわせて、回答した内容がマニュアルへ追記される仕組みを入れます。</p>
+      <p class="when">効果：数値や評価に関わる情報も扱えるようになる ／ 所要：2〜3週間</p>
+    </div>
+    <div data-n="04">
+      <h3>もう一方のチャットツールと、転送・定期報告</h3>
+      <p>受け口を増やし、伝言の要約転送と、定期報告を追加します。</p>
+      <p class="when">効果：伝言の手間がなくなる ／ 所要：2週間</p>
+    </div>
+  </div>
 
-    <li>
-      <h3>プロジェクトを作る</h3>
-      <p><b>既存のプロジェクトに足さず、新しく作ってください。</b>他の自動化と関数名が衝突します。</p>
-      <details><summary>衝突する名前</summary>
-<pre><code>getSheet_ / columnIndex_ / LOG_HEADERS / testEndToEnd_</code></pre></details>
-    </li>
-
-    <li>
-      <h3>鍵を保存する</h3>
-      <p>コードの中にAPIキーを残さないため、スクリプトプロパティへ移します。<b>実行したら、コード内の値を消して保存し直してください。</b></p>
-      <details><summary>保存する項目</summary>
-<pre><code>ANTHROPIC_API_KEY   生成AIのAPIキー
-CHATWORK_TOKEN      チャット側のAPIトークン</code></pre></details>
-    </li>
-
-    <li>
-      <h3>設定値を入れる</h3>
-      <p>環境によって変わる値だけを置き換えます。</p>
-      <details><summary>置き換える箇所</summary>
-<pre><code>SHEET_ID        スプレッドシートのID
-FOLDER_OUT      既定の出力先フォルダID
-ALLOWED_ROOMS   反応させるルームID（ここに無いルームは無視）
-TRIGGER_WORD    呼び出しの語（既定は @bot）
-DEFAULT_ROLE    権限表に無い人の扱い（一般 ／ 反応しない）</code></pre></details>
-    </li>
-
-    <li>
-      <h3>権限表を作る</h3>
-      <p>送信者ID・氏名・役割・返す先・保存先の5列を埋めます。<b>送信者IDは、テスト投稿の受付表から拾えます。</b></p>
-      <p>まず自分1人だけを登録し、想定どおり絞られるかを確認してから広げてください。</p>
-    </li>
-
-    <li>
-      <h3>チャットへの投稿を確認する</h3>
-      <p>接続確認の関数を実行します。テスト用ルームにメッセージが出れば成功です。</p>
-      <p>ここで失敗する場合、原因はトークンかルームIDです。生成AI側はまだ関係ありません。</p>
-    </li>
-
-    <li>
-      <h3>出し分けを確認する</h3>
-      <p>役割を切り替えながら同じ依頼を投げ、<b>渡されたルールの一覧がログでどう変わるか</b>を見ます。</p>
-      <p>実行ログに「使ったノウハウ」列があるので、<b>役員のみの規則が一般の人の実行に混ざっていないか</b>をここで確認します。ここを飛ばさないでください。</p>
-    </li>
-
-    <li>
-      <h3>公開して通知を登録する</h3>
-      <p>ウェブアプリとして公開し、発行されたURLをチャット側の管理画面に通知先として登録します。アクセスできるユーザーは「全員」にします。チャット側のサーバーから叩かれるためです。</p>
-      <details><summary>URLの扱いに注意</summary>
-<pre><code>この受け口ではリクエストヘッダを取得できないため、
-通知の署名検証ができません。
-
-代わりに2段で守ります。
-  1. ウェブアプリのURLを秘匿する（推測困難な文字列が実質の鍵）
-  2. 本文のルームIDを許可リストと照合し、一致しなければ無視する
-
-署名検証が要件になる場合は、受け口を別基盤へ移してください。</code></pre></details>
-    </li>
-
-    <li>
-      <h3>定期実行を設置し、通しで確認する</h3>
-      <p>1分ごとの実行を設置します。同名のものは自動で消してから作り直すので、二重にはなりません。</p>
-      <p>最後に、受付から投稿までを通しで確認します。</p>
-    </li>
-  </ol>
+  <div class="box ok">
+    <p class="box-t"><span class="p p-ok">おすすめ</span>第1段階だけ先に進めてください</p>
+    <p style="margin-bottom:0">スキルの分割は、<b>今の構成のまま、今週中に効果が出ます。</b>ここで「どう使われるか」が見えてから第2段階の要件を固めると、作り直しが起きません。</p>
+  </div>
 </section>
 
-<!-- ===== 05 制約 ===== -->
+<!-- ===== 05 確認事項 ===== -->
 <section>
   <span class="snum">05</span>
-  <h2>先に知っておく制約</h2>
+  <h2>確認させていただきたいこと</h2>
 
   <div class="scroll">
     <table>
-      <thead><tr><th>項目</th><th>制約</th><th>回避のしかた</th></tr></thead>
+      <thead><tr><th>項目</th><th>なぜ必要か</th></tr></thead>
       <tbody>
-        <tr><td class="k">通知への応答</td><td><b>10秒以内。超えると切断され、再送もされない</b></td><td>受け取りと処理を分ける（本構成）</td></tr>
-        <tr><td class="k">署名検証</td><td><b>この受け口では不可</b>（ヘッダを取得できない）</td><td>URLの秘匿＋ルームIDの照合。要件が厳しければ別基盤へ</td></tr>
-        <tr><td class="k">ファイル添付</td><td><b>上限5MB</b></td><td>超えるものはドライブに保存してリンクを投稿</td></tr>
-        <tr><td class="k">投稿の頻度</td><td>ルームごとに10秒あたり10回</td><td>1回の処理件数を絞る</td></tr>
-        <tr><td class="k">API全体の頻度</td><td>5分あたり300回</td><td>同上</td></tr>
-        <tr><td class="k">定期実行の間隔</td><td>最短1分</td><td>即時応答は望めない。受付の返事を先に出す</td></tr>
-        <tr><td class="k">出し分けの粒度</td><td>役割単位。<b>案件単位の細かい制御は別途必要</b></td><td>案件ごとに分けるなら、ルーム自体を分ける</td></tr>
-        <tr><td class="k">会話の継続</td><td><b>1往復で完結する。前回の続きはできない</b></td><td>続きが要るなら、受付表にスレッドIDを持たせ、直前のやり取りを添えて渡す実装を足す</td></tr>
-        <tr><td class="k">利用者の識別</td><td>チャット側のIDでのみ識別する。<b>生成AI側は誰の依頼かを知らない</b></td><td>監査はチャット側のIDと実行ログで行う</td></tr>
+        <tr><td class="k">現在のご契約プラン</td><td>既製の連携が使えるかの判定に必要です</td></tr>
+        <tr><td class="k">どちらのチャットツールから始めるか</td><td>受け口の実装順が決まります</td></tr>
+        <tr><td class="k">エージェントの名前</td><td>各チャットに同名のアカウントを用意します</td></tr>
+        <tr><td class="k">権限の区分</td><td>何段階に分けるかで、権限表の作りが決まります</td></tr>
+        <tr><td class="k">マニュアルの保管場所</td><td>読み書きの方式が決まります</td></tr>
+        <tr><td class="k">現在のスキル一式</td><td>分割の設計に使います</td></tr>
       </tbody>
     </table>
   </div>
 
-  <div class="box risk">
-    <p class="box-t"><span class="p p-risk">規約</span>アカウントの共有はできません</p>
-    <p>「1つの契約を全員で使う」を、<b>ログイン情報を回して実現してはいけません。</b>提供元の利用規約に明記があります。</p>
-    <p><code>You may not share your Account login information, Anthropic API key, or Account credentials with anyone else. You also may not make your Account available to anyone else.</code></p>
-    <p style="margin-bottom:0"><b>本構成はこれに当たりません。</b>鍵は誰にも配らず、サーバー側のスクリプトだけが保持します。利用者はチャットに書くだけで、鍵にも管理画面にも触れません。全員に共通なのは<b>ノウハウ表・権限表・設定</b>であって、アカウントではありません。</p>
-  </div>
-
-  <div class="box warn">
-    <p class="box-t"><span class="p p-warn">運用</span>ノウハウも権限表も、放っておくと腐ります</p>
-    <p style="margin-bottom:0">規則は、もう存在しない体裁や担当を指すようになります。権限表は、異動や退職に追いつかなくなります。<b>どちらも更新日の列を設けてあります。</b>月に一度、古い順に見直す運用を組み込んでください。権限表については、人事の名簿と突き合わせるのが確実です。</p>
+  <h3>先に知っておいていただきたい制約</h3>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>項目</th><th>制約</th><th>対処</th></tr></thead>
+      <tbody>
+        <tr><td class="k">応答までの時間</td><td>資料生成は数十秒〜数分</td><td>受付の返事を先に返し、完成後に改めて投稿します</td></tr>
+        <tr><td class="k">添付ファイル</td><td>上限あり</td><td>超えるものはドライブに保存してリンクを送ります</td></tr>
+        <tr><td class="k">投稿の頻度</td><td>ルームごとに上限あり</td><td>同時処理の件数を絞ります</td></tr>
+        <tr><td class="k">費用</td><td>使った分だけの従量制</td><td>上限を設け、月次で実績を報告します</td></tr>
+        <tr><td class="k">知識の鮮度</td><td>古い規約が残ると誤答の原因になります</td><td>更新日を持たせ、月次で棚卸しします</td></tr>
+      </tbody>
+    </table>
   </div>
 </section>
 
 <footer>
   <span>株式会社デジライズ</span>
-  <span>設計書 ／ 2026年9月</span>
+  <span>調査結果と推奨構成 ／ 2026年9月</span>
 </footer>
 
 </div>
-
-<script>
-(function () {
-  var RULES = [
-    { name: '結論から書く',  scope: '全員',     lv: 0 },
-    { name: '数値の扱い',    scope: '全員',     lv: 0 },
-    { name: '価格の見せ方',  scope: '全員',     lv: 0 },
-    { name: '値引きの範囲',  scope: '管理職以上', lv: 1 },
-    { name: '原価の基準',    scope: '役員のみ',  lv: 2 }
-  ];
-  var ROLES = [
-    { label: '一般',   lv: 0, dest: 'ルームへ投稿',        folder: '共有フォルダ' },
-    { label: '管理職', lv: 1, dest: 'ルームへ投稿',        folder: '管理職フォルダ' },
-    { label: '役員',   lv: 2, dest: 'ダイレクトチャットへ', folder: '役員フォルダ' }
-  ];
-
-  var rows = document.getElementById('roleRows');
-  var th   = document.getElementById('thRole');
-  var note = document.getElementById('roleNote');
-  var bar  = document.querySelector('.roles-bar');
-
-  function render(i) {
-    var r = ROLES[i];
-    th.textContent = r.label + ' のとき';
-    rows.innerHTML = '';
-    RULES.forEach(function (rule) {
-      var ok = rule.lv <= r.lv;
-      var tr = document.createElement('tr');
-
-      var c1 = document.createElement('td');
-      c1.className = 'k';
-      c1.textContent = rule.name;
-
-      var c2 = document.createElement('td');
-      c2.textContent = rule.scope;
-
-      var c3 = document.createElement('td');
-      c3.className = ok ? 'hi' : 'no';
-      var pill = document.createElement('span');
-      pill.className = 'p ' + (ok ? 'p-ok' : 'p-risk');
-      pill.textContent = ok ? '渡す' : '渡さない';
-      c3.appendChild(pill);
-
-      tr.appendChild(c1); tr.appendChild(c2); tr.appendChild(c3);
-      rows.appendChild(tr);
-    });
-
-    var n = RULES.filter(function (x) { return x.lv <= r.lv; }).length;
-    note.innerHTML = '<b>' + r.label + '</b> が依頼した場合：社内ルール '
-      + n + ' / ' + RULES.length + ' 件を渡し、結果は <b>' + r.dest
-      + '</b>、生成物は <b>' + r.folder + '</b> に保存します。';
-
-    Array.prototype.forEach.call(bar.querySelectorAll('button.role'), function (b, k) {
-      b.setAttribute('aria-pressed', k === i ? 'true' : 'false');
-    });
-  }
-
-  bar.addEventListener('click', function (e) {
-    var b = e.target.closest('button.role');
-    if (b) render(Number(b.getAttribute('data-r')));
-  });
-
-  render(0);
-})();
-</script>
 </body>
 </html>
